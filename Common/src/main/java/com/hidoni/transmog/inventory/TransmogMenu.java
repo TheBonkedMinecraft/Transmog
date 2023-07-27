@@ -5,11 +5,14 @@ import com.hidoni.transmog.TransmogUtils;
 import com.hidoni.transmog.block.entity.TransmogrificationTableBlockEntity;
 import com.hidoni.transmog.registry.ModBlocks;
 import com.hidoni.transmog.registry.ModMenus;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +51,13 @@ public class TransmogMenu extends AbstractContainerMenu {
         this.access = access;
         this.transmogBlockData = transmogBlockData;
 
-        this.addSlot(new Slot(this.inputContainer, ITEM_TO_TRANSMOG_SLOT, 38, 41));
+        this.addSlot(new Slot(this.inputContainer, ITEM_TO_TRANSMOG_SLOT, 38, 41) {
+
+            @Override
+            public boolean mayPlace(@NotNull ItemStack itemStack){
+                return true;
+            };
+        });
         this.addSlot(new Slot(this.inputContainer, APPEARANCE_ITEM_SLOT, 87, 41) {
             @Override
             public int getMaxStackSize() {
@@ -170,7 +179,7 @@ public class TransmogMenu extends AbstractContainerMenu {
     private void outputRemovedTransmog() {
         ItemStack item = this.getSlot(ITEM_TO_TRANSMOG_SLOT).getItem().copy();
         item.setCount(1);
-        item.removeTagKey(Constants.TRANSMOG_ITEM_TAG);
+        item.removeTagKey("Transmog");
         this.resultContainer.setItem(OUTPUT_SLOT, item);
         this.broadcastChanges();
     }
@@ -191,9 +200,9 @@ public class TransmogMenu extends AbstractContainerMenu {
     public ItemStack createTransmoggedItem(ItemStack itemToTransmog) {
         ItemStack itemCopy = itemToTransmog.copy();
         itemCopy.setCount(1);
-        ItemStack appearanceItem = TransmogUtils.getAppearanceItemStack(this.getSlot(APPEARANCE_ITEM_SLOT).getItem(), true).copy();
-        appearanceItem.setCount(1);
-        TransmogUtils.transmogAppearanceOntoItemStack(appearanceItem, itemCopy);
+        ItemStack appearanceItem = this.getSlot(APPEARANCE_ITEM_SLOT).getItem();
+        itemCopy.getOrCreateTagElement("Transmog").putString("Model", appearanceItem.getOrCreateTagElement("Transmog").getString("Model"));
+        this.getSlot(APPEARANCE_ITEM_SLOT).remove(1);
         return itemCopy;
     }
 
